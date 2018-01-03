@@ -97,7 +97,7 @@ def perception_step(Rover):
     # Require that each pixel be above all three threshold values in RGB
     # masks will now contain a boolean array with "True" where threshold was met
     obstacle_mask = (warped[:,:,0] < 160) & (warped[:,:,1] < 160) & (warped[:,:,2] < 160)
-    yellow_mask = (warped[:,:,0] > 12) & (warped[:,:,0] < 65) & (warped[:,:,1] > 75)
+    yellow_mask = (warped[:,:,0] > 110) & (warped[:,:,1] > 110) & (warped[:,:,2] < 50)
     navigable_mask = (warped[:,:,0] > 160) & (warped[:,:,1] > 160) & (warped[:,:,2] > 160)
 
     obstacle_view = apply_mask(warped, obstacle_mask)
@@ -108,9 +108,9 @@ def perception_step(Rover):
         # Example: Rover.vision_image[:,:,0] = obstacle color-thresholded binary image
         #          Rover.vision_image[:,:,1] = rock_sample color-thresholded binary image
         #          Rover.vision_image[:,:,2] = navigable terrain color-thresholded binary image
-    Rover.vision_image[:,:,0] = obstacle_view
-    Rover.vision_image[:,:,1] = rock_view
-    Rover.vision_image[:,:,2] = navigable_view
+    Rover.vision_image[:,:,0] = obstacle_view * 255
+    Rover.vision_image[:,:,1] = rock_view * 255
+    Rover.vision_image[:,:,2] = navigable_view * 255
 
     # 5) Convert map image pixel values to rover-centric coords
     obstacle_x, obstacle_y = rover_coords(obstacle_view)
@@ -118,11 +118,10 @@ def perception_step(Rover):
     navigable_x, navigable_y = rover_coords(navigable_view)
 
     # 6) Convert rover-centric pixel values to world coordinates
-    worldmap = np.zeros((200, 200))
     scale = 10
-    navigable_x_world, navigable_y_world = pix_to_world(navigable_x, navigable_y, Rover.pos[0], Rover.pos[1], Rover.yaw, worldmap.shape[0], scale)
-    rock_x_world, rock_y_world = pix_to_world(rock_x, rock_y, Rover.pos[0], Rover.pos[1], Rover.yaw, worldmap.shape[0], scale)
-    obstacle_x_world, obstacle_y_world = pix_to_world(obstacle_x, obstacle_y, Rover.pos[0], Rover.pos[1], Rover.yaw, worldmap.shape[0], scale)
+    navigable_x_world, navigable_y_world = pix_to_world(navigable_x, navigable_y, Rover.pos[0], Rover.pos[1], Rover.yaw, Rover.worldmap.shape[0], scale)
+    rock_x_world, rock_y_world = pix_to_world(rock_x, rock_y, Rover.pos[0], Rover.pos[1], Rover.yaw, Rover.worldmap.shape[0], scale)
+    obstacle_x_world, obstacle_y_world = pix_to_world(obstacle_x, obstacle_y, Rover.pos[0], Rover.pos[1], Rover.yaw, Rover.worldmap.shape[0], scale)
 
 
     # 7) Update Rover worldmap (to be displayed on right side of screen)
