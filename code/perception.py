@@ -70,8 +70,9 @@ def perspect_transform(img, src, dst):
 
     M = cv2.getPerspectiveTransform(src, dst)
     warped = cv2.warpPerspective(img, M, (img.shape[1], img.shape[0]))# keep same size as input image
+    visible_terrain_mask = cv2.warpPerspective(np.ones_like(img[:,:,0]), M, (img.shape[1], img.shape[0]))# keep same size as input image
 
-    return warped
+    return warped, visible_terrain_mask
 
 
 # Apply the above functions in succession and update the Rover state accordingly
@@ -80,7 +81,6 @@ def perception_step(Rover):
     # NOTE: camera image is coming to you in Rover.img
 
     # 1) Define source and destination points for perspective transform
-    #grid_img = mpimg.imread('calibration_images/example_grid1.jpg')
     source = np.float32([[15.97, 142.145],
         [119.199, 96.3387],
         [200.489, 96.9839 ],
@@ -91,18 +91,17 @@ def perception_step(Rover):
         [168, 140]])
 
     # 2) Apply perspective transform
-    warped = perspect_transform(Rover.img, source, destination)
+    warped, visible_terrain_mask = perspect_transform(Rover.img, source, destination)
 
     # 3) Apply color threshold to identify navigable terrain/obstacles/rock samples
     # Require that each pixel be above all three threshold values in RGB
     # masks will now contain a boolean array with "True" where threshold was met
-    obstacle_mask = (warped[:,:,0] < 160) & (warped[:,:,1] < 160) & (warped[:,:,2] < 160)
     yellow_mask = (warped[:,:,0] > 110) & (warped[:,:,1] > 110) & (warped[:,:,2] < 50)
     navigable_mask = (warped[:,:,0] > 160) & (warped[:,:,1] > 160) & (warped[:,:,2] > 160)
 
-    obstacle_view = apply_mask(warped, obstacle_mask)
     rock_view = apply_mask(warped, yellow_mask)
     navigable_view = apply_mask(warped, navigable_mask)
+    obstacle_view = np.absolute(np.float32(navigable_view) - 1) * visible_terrain_mask
 
     # 4) Update Rover.vision_image (this will be displayed on left side of screen)
         # Example: Rover.vision_image[:,:,0] = obstacle color-thresholded binary image
