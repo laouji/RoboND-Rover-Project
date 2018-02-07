@@ -81,14 +81,8 @@ def perception_step(Rover):
     # NOTE: camera image is coming to you in Rover.img
 
     # 1) Define source and destination points for perspective transform
-    source = np.float32([[15.97, 142.145],
-        [119.199, 96.3387],
-        [200.489, 96.9839 ],
-        [302.425, 141.5]])
-    destination = np.float32([[152, 140],
-        [152, 124],
-        [168, 124],
-        [168, 140]])
+    source = np.float32([[14, 140],[200, 96],[301, 140],[118, 96]])
+    destination = np.float32([[152, 140],[168, 124],[168, 140],[152, 124]])
 
     # 2) Apply perspective transform
     warped, visible_terrain_mask = perspect_transform(Rover.img, source, destination)
