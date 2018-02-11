@@ -34,7 +34,7 @@ def handle_stuck_state(Rover):
     return advance(Rover, -1.0) # negative throttle puts Rover into reverse
 
 def handle_reverse_state(Rover):
-    if Rover.vel < -0.1:
+    if Rover.vel < -0.1 and Rover.action_timer.timeout():
         Rover.mode = 'forward'
         Rover.throttle = 0
         return turn_around(Rover)
@@ -109,13 +109,18 @@ def advance(Rover, throttle):
     Rover.brake = 0
     Rover.mode = 'forward'
 
-    # find angles closish to a wall and then take the mean angle
-    nav_angles = np.mean(np.percentile(Rover.nav_angles * 180/np.pi, 25))
+    nav_angles = -15
+    # if we have any nav angles, find the weighted average
+    if len(Rover.nav_angles) > 0:
+        nav_angles = np.average(rad_to_deg(Rover.nav_angles), weights=Rover.nav_weights)
 
     # if we're going backwards try to go straight back
     if throttle < 0:
         Rover.mode = 'reverse'
-        nav_angles = np.mean(Rover.nav_angles * 180/np.pi)
+        nav_angles = np.mean(rad_to_deg(Rover.nav_angles))
 
     Rover.steer = np.clip(nav_angles, -15, 15) # clipped to the range +/- 15
     return Rover
+
+def rad_to_deg(radian):
+    return radian * 180 / np.pi

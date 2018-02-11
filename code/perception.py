@@ -2,6 +2,8 @@ import math
 import numpy as np
 import cv2
 
+SEEN_WEIGHT  = 0.5
+
 # Identify pixels above the threshold
 # Threshold of RGB > 160 does a nice job of identifying ground pixels only
 #def apply_mask(img, rgb_thresh=(160, 160, 160)):
@@ -24,6 +26,17 @@ def rover_coords(binary_img):
     y_pixel = -(xpos - binary_img.shape[1]/2 ).astype(np.float)
     return x_pixel, y_pixel
 
+def update_nav_weights(Rover, x_pixels, y_pixels):
+    if (len(x_pixels) == 0):
+        Rover.nav_weights = np.array([])
+        return
+
+    updated_weights = np.ones_like(x_pixels, dtype=np.float)
+    for i, (x, y) in enumerate(zip(x_pixels, y_pixels)):
+        if Rover.seenmap[y, x]:
+            updated_weights[i] = Rover.seen_weight_multiplier
+
+    Rover.nav_weights = updated_weights
 
 # Define a function to convert to radial coords in rover space
 def to_polar_coords(x_pixel, y_pixel):
@@ -129,6 +142,8 @@ def perception_step(Rover):
         Rover.worldmap[obstacle_y_world, obstacle_x_world, 0] += 1
         Rover.worldmap[rock_y_world, rock_x_world, 1] += 1
         Rover.worldmap[navigable_y_world, navigable_x_world, 2] += 1
+
+    update_nav_weights(Rover, navigable_x_world, navigable_y_world)
 
     # 8) Convert rover-centric pixel positions to polar coordinates
     pixel_distances, angles = to_polar_coords(navigable_x, navigable_y)
