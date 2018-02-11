@@ -14,6 +14,12 @@ def try_action(Rover):
 # commands based on the output of the perception_step() function
 def decision_step(Rover):
     # Check for Rover.mode status
+    if Rover.mode == 'stuck':
+        return handle_stuck_state(Rover)
+
+    if Rover.mode == 'reverse':
+        return handle_reverse_state(Rover)
+
     if Rover.mode == 'forward':
         return handle_moving_state(Rover)
 
@@ -24,7 +30,24 @@ def decision_step(Rover):
     # Unexpected
     return Rover
 
+def handle_stuck_state(Rover):
+    return advance(Rover, -1.0) # negative throttle puts Rover into reverse
+
+def handle_reverse_state(Rover):
+    if Rover.vel < -0.1:
+        Rover.mode = 'forward'
+        Rover.throttle = 0
+        return turn_around(Rover)
+
+    return advance(Rover, -1.0)
+
 def handle_moving_state(Rover):
+    if Rover.throttle == Rover.throttle_set and Rover.vel == 0:
+        Rover.action_timer.start() # start timing if timer not already running
+        if Rover.action_timer.timeout():
+            Rover.mode = 'stuck'
+            return Rover
+
     # If close to a rock, stop so we can pick it up
     if Rover.near_sample:
         return apply_brake(Rover)
@@ -56,7 +79,7 @@ def handle_stopped_state(Rover):
     # If we're not moving (vel < 0.2) then do something else
     # Now we're stopped and we have vision data to see if there's a path forward
     if len(Rover.nav_angles) < Rover.go_forward:
-        return turn(Rover)
+        return turn_around(Rover)
 
     return advance(Rover, Rover.throttle_set)
 
@@ -67,20 +90,32 @@ def apply_brake(Rover):
     Rover.mode = 'stop'
     return Rover
 
-def turn(Rover):
+def turn_around(Rover, turn_right=True):
+    direction_modifier = 1
+    if turn_right:
+        direction_modifier = -1
+
     Rover.throttle = 0
     # Release the brake to allow turning
     Rover.brake = 0
     # Turn range is +/- 15 degrees, when stopped the next line will induce 4-wheel turning
-    Rover.steer = -15 # Could be more clever here about which way to turn
+    Rover.steer = direction_modifier * 15
     return Rover
 
 def advance(Rover, throttle):
-    # Set throttle back to stored value
+    # Set throttle to given value
     Rover.throttle = throttle
     # Release the brake
     Rover.brake = 0
-    # Set steer to mean angle (average angle clipped to the range +/- 15)
-    Rover.steer = np.clip(np.mean(Rover.nav_angles * 180/np.pi), -15, 15)
     Rover.mode = 'forward'
+
+    # find angles closish to a wall and then take the mean angle
+    nav_angles = np.mean(np.percentile(Rover.nav_angles * 180/np.pi, 25))
+
+    # if we're going backwards try to go straight back
+    if throttle < 0:
+        Rover.mode = 'reverse'
+        nav_angles = np.mean(Rover.nav_angles * 180/np.pi)
+
+    Rover.steer = np.clip(nav_angles, -15, 15) # clipped to the range +/- 15
     return Rover
