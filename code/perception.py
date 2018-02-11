@@ -1,3 +1,4 @@
+import math
 import numpy as np
 import cv2
 
@@ -81,8 +82,14 @@ def perception_step(Rover):
     # NOTE: camera image is coming to you in Rover.img
 
     # 1) Define source and destination points for perspective transform
-    source = np.float32([[14, 140],[200, 96],[301, 140],[118, 96]])
-    destination = np.float32([[152, 140],[168, 124],[168, 140],[152, 124]])
+    dst_size = 5
+    bottom_offset = 6
+    source = np.float32([[14, 140], [301, 140], [200, 96], [118, 96]])
+    destination = np.float32([[Rover.img.shape[1] / 2 - dst_size, Rover.img.shape[0] - bottom_offset],
+                              [Rover.img.shape[1] / 2 + dst_size, Rover.img.shape[0] - bottom_offset],
+                              [Rover.img.shape[1] / 2 + dst_size, Rover.img.shape[0] - 2 * dst_size - bottom_offset],
+                              [Rover.img.shape[1] / 2 - dst_size, Rover.img.shape[0] - 2 * dst_size - bottom_offset],
+                              ])
 
     # 2) Apply perspective transform
     warped, visible_terrain_mask = perspect_transform(Rover.img, source, destination)
@@ -118,12 +125,10 @@ def perception_step(Rover):
 
 
     # 7) Update Rover worldmap (to be displayed on right side of screen)
-        # Example: Rover.worldmap[obstacle_y_world, obstacle_x_world, 0] += 1
-        #          Rover.worldmap[rock_y_world, rock_x_world, 1] += 1
-        #          Rover.worldmap[navigable_y_world, navigable_x_world, 2] += 1
-    Rover.worldmap[obstacle_y_world, obstacle_x_world, 0] += 1
-    Rover.worldmap[rock_y_world, rock_x_world, 1] += 1
-    Rover.worldmap[navigable_y_world, navigable_x_world, 2] += 1
+    if should_update_map(Rover.roll, Rover.pitch):
+        Rover.worldmap[obstacle_y_world, obstacle_x_world, 0] += 1
+        Rover.worldmap[rock_y_world, rock_x_world, 1] += 1
+        Rover.worldmap[navigable_y_world, navigable_x_world, 2] += 1
 
     # 8) Convert rover-centric pixel positions to polar coordinates
     pixel_distances, angles = to_polar_coords(navigable_x, navigable_y)
@@ -133,3 +138,18 @@ def perception_step(Rover):
     Rover.nav_angles = angles
 
     return Rover
+
+def should_update_map(roll, pitch):
+    if not is_valid_angle(roll, 1.0):
+        return False
+
+    if not is_valid_angle(pitch, 1.5):
+        return False
+
+    return True
+
+def is_valid_angle(angle, threshold):
+    if angle < threshold or angle > (360 - threshold):
+        return True
+    else:
+        return False
