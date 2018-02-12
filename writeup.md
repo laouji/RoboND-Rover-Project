@@ -2,32 +2,13 @@
 
 ---
 
-
-**The goals / steps of this project are the following:**
-
-**Training / Calibration**
-
-* Download the simulator and take data in "Training Mode"
-* Test out the functions in the Jupyter Notebook provided
-* Add functions to detect obstacles and samples of interest (golden rocks)
-* Fill in the `process_image()` function with the appropriate image processing steps (perspective transform, color threshold etc.) to get from raw images to a map.  The `output_image` you create in this step should demonstrate that your mapping pipeline works.
-* Use `moviepy` to process the images in your saved dataset with the `process_image()` function.  Include the video you produce as part of your submission.
-
-**Autonomous Navigation / Mapping**
-
-* Fill in the `perception_step()` function within the `perception.py` script with the appropriate image processing functions to create a map and update `Rover()` data (similar to what you did with `process_image()` in the notebook).
-* Fill in the `decision_step()` function within the `decision.py` script with conditional statements that take into consideration the outputs of the `perception_step()` in deciding how to issue throttle, brake and steering commands.
-* Iterate on your perception and decision function until your rover does a reasonable (need to define metric) job of navigating and mapping.
-
 [//]: # (Image References)
 
 [image1]: ./misc/rover_image.jpg
 [image2]: ./calibration_images/example_grid1.jpg
 [image3]: ./calibration_images/example_rock1.jpg
 [image4]: ./output/test_mapping_output_preview.png
-
-## [Rubric](https://review.udacity.com/#!/rubrics/916/view) Points
-### Here I will consider the rubric points individually and describe how I addressed each point in my implementation.
+[image5]: ./misc/graphics_quality.png
 
 ---
 ### Writeup / README
@@ -38,9 +19,8 @@ You're reading it!
 
 ### Notebook Analysis
 #### 1. Run the functions provided in the notebook on test images (first with the test data provided, next on data you have recorded). Add/modify functions to allow for color selection of obstacles and rock samples.
-Here is an example of how to include an image in your writeup.
 
-![alt text][image1]
+Please check the notebook for my modifications
 
 #### 1. Populate the `process_image()` function with the appropriate analysis steps to map pixels identifying navigable terrain, obstacles and rock samples into a worldmap.  Run `process_image()` on your test data using the `moviepy` functions provided to create video output of your result.
 
@@ -182,12 +162,17 @@ np.average(rad_to_deg(Rover.nav_angles), weights=Rover.nav_weights)
 
 #### 2. Launching in autonomous mode your rover can navigate and map autonomously.  Explain your results and how you might improve them in your writeup.
 
-**Note: running the simulator with different choices of resolution and graphics quality may produce different results, particularly on different machines!  Make a note of your simulator settings (resolution and graphics quality set on launch) and frames per second (FPS output to terminal by `drive_rover.py`) in your writeup when you submit the project so your reviewer can reproduce your results.**
+I focused mostly on trying to get the rover to map as much terrain as possible by reducing the chance it would bump into things and get stuck, and trying to encourage it to explore areas it had never been before.
+The improvements I made, however, are still a bit naive. The rover still sometimes drives in circles, straying only a few map points from where it had last driven. Improving computer vision by tweaking the navigable terrain mask so the rover can be aware of more possible routes might help a bit in this regard.
 
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.
+The program could be optimised even further by getting the rover to move towards rock samples when they enter its field of vision, since the rover must be very close to the sample for the `near_sample` flag to be triggered. As is, it's very unlikely that this rover will ever pick up a sample.
 
+If I were to persue this project more I would like to get the rover to try to find overlap between the navigable view and the rock sample view, and then prioritise the pixels between it over others by increasing their weight in `Rover.nav_weights`. This would likely increase the chance that the rover would get close enough to the samples to pick them up.
 
+Settings I used running the simulator:
 
-![alt text][image3]
+Screen resolution: 1440 x 900
+Graphics Quality: Good
+FPS: 39
 
-
+![settings used to run the simulator][image5]
