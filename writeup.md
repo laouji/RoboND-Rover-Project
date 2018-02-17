@@ -1,16 +1,10 @@
 ## Project: Search and Sample Return
 
----
-
 [//]: # (Image References)
 
-[image1]: ./misc/rover_image.jpg
-[image2]: ./calibration_images/example_grid1.jpg
-[image3]: ./calibration_images/example_rock1.jpg
-[image4]: ./output/test_mapping_output_preview.png
-[image5]: ./misc/graphics_quality.png
+[image1]: ./misc/test_mapping_output_preview.png
+[image2]: ./misc/graphics_quality.png
 
----
 ### Writeup / README
 
 #### 1. Provide a Writeup / README that includes all the rubric points and how you addressed each one.  You can submit your writeup as markdown or pdf.
@@ -39,7 +33,7 @@ In step #5 I use the `pix_to_world()` function to get the world coordinates, usi
 These coordinates can then be plugged into the `data.worldmap`. Each channel containing a different map overlay.
 Except for the text. I didn't really change any of the visuals output to the screen in step #7.
 
-![preview of process image() analysis][image4]
+![preview of process image() analysis][image1]
 
 ### Autonomous Navigation and Mapping
 
@@ -175,4 +169,4 @@ Screen resolution: 1440 x 900
 Graphics Quality: Good
 FPS: 39
 
-![settings used to run the simulator][image5]
+![settings used to run the simulator][image2]
