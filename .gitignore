@@ -1,5 +1,6 @@
 .DS_Store
 *.sw*
 code/__pycache__
+code/.ipynb_checkpoints/*
 output/*
 test_dataset/*
