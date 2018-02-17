@@ -2,8 +2,6 @@ import math
 import numpy as np
 import cv2
 
-SEEN_WEIGHT  = 0.5
-
 # Identify pixels above the threshold
 # Threshold of RGB > 160 does a nice job of identifying ground pixels only
 #def apply_mask(img, rgb_thresh=(160, 160, 160)):
@@ -34,7 +32,7 @@ def update_nav_weights(Rover, x_pixels, y_pixels):
     updated_weights = np.ones_like(x_pixels, dtype=np.float)
     for i, (x, y) in enumerate(zip(x_pixels, y_pixels)):
         if Rover.seenmap[y, x]:
-            updated_weights[i] = Rover.seen_weight_multiplier
+            updated_weights[i] = updated_weights[i] * Rover.seen_weight_multiplier
 
     Rover.nav_weights = updated_weights
 
