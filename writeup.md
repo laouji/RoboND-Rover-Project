@@ -168,6 +168,8 @@ np.average(rad_to_deg(Rover.nav_angles), weights=Rover.nav_weights)
 
 #### 2. Launching in autonomous mode your rover can navigate and map autonomously.  Explain your results and how you might improve them in your writeup.
 
+Here is a youtube link to the rover autonomously navigating the terrain using my code: [https://youtu.be/MLeakP3-kVs](https://youtu.be/MLeakP3-kVs)
+
 I focused mostly on trying to get the rover to map as much terrain as possible by reducing the chance it would bump into things and get stuck, and trying to encourage it to explore areas it had never been before.
 The improvements I made, however, are still a bit naive. The rover still sometimes drives in circles, straying only a few map points from where it had last driven. Improving computer vision by tweaking the navigable terrain mask so the rover can be aware of more possible routes might help a bit in this regard.
 
@@ -177,8 +179,8 @@ If I were to persue this project more I would like to get the rover to try to fi
 
 Settings I used running the simulator:
 
-Screen resolution: 1440 x 900
-Graphics Quality: Good
-FPS: 39
+* Screen resolution: 1440 x 900
+* Graphics Quality: Good
+* FPS: 39
 
 ![settings used to run the simulator][image2]
