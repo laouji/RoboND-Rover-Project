@@ -112,18 +112,30 @@ def advance(Rover, throttle):
     # if we're going backwards try to go straight back
     if throttle < 0:
         Rover.mode = 'reverse'
-        nav_angles = np.mean(rad_to_deg(Rover.nav_angles))
+        nav_angles = 0
 
     Rover.steer = np.clip(nav_angles, -15, 15) # clipped to the range +/- 15
 ```
 
-Finally I added a `handle_reverse_state()` function that checks to see if the rover is moving backwards at an adequate velocity, and then tries to turn around. If not it will continue trying to move backwards.
+Finally I added a `handle_reverse_state()` function that checks to see if the rover has successfully moved backwards, and then tries to turn around after the timer expires.
 
 ```python
 def handle_reverse_state(Rover):
-    if Rover.vel < -0.1 and Rover.action_timer.timeout():
+    # in case the Rover gets stuck going backwards
+    if Rover.throttle == Rover.throttle_set and Rover.vel == 0:
+        if Rover.action_timer.timeout():
+            Rover.mode = 'forward'
+            Rover.throttle = 0
+            return turn_around(Rover)
+
+    if Rover.vel < Rover.threshold_reverse_velocity:
+        # we want to know if we succeeded in backing up, but it might not be time to turn around yet
+        Rover.has_reached_threshold_reverse_velocity = True
+
+    if Rover.has_reached_threshold_reverse_velocity and Rover.action_timer.timeout():
         Rover.mode = 'forward'
         Rover.throttle = 0
+        Rover.has_reached_threshold_reverse_velocity = False # reset
         return turn_around(Rover)
 
     return advance(Rover, -1.0)
@@ -143,7 +155,7 @@ def update_nav_weights(Rover, x_pixels, y_pixels):
     updated_weights = np.ones_like(x_pixels, dtype=np.float)
     for i, (x, y) in enumerate(zip(x_pixels, y_pixels)):
         if Rover.seenmap[y, x]:
-            updated_weights[i] = 0.5
+            updated_weights[i] = updated_weights[i] * 0.5
 
     Rover.nav_weights = updated_weights
 ```
