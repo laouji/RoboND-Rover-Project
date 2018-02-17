@@ -34,6 +34,8 @@ def handle_stuck_state(Rover):
     return advance(Rover, -1.0) # negative throttle puts Rover into reverse
 
 def handle_reverse_state(Rover):
+    Rover.action_timer.start() # start timing if timer not already running
+
     if Rover.vel < -0.1 and Rover.action_timer.timeout():
         Rover.mode = 'forward'
         Rover.throttle = 0
