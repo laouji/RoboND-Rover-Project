@@ -111,7 +111,7 @@ def perception_step(Rover):
     # Require that each pixel be above all three threshold values in RGB
     # masks will now contain a boolean array with "True" where threshold was met
     yellow_mask = (warped[:,:,0] > 110) & (warped[:,:,1] > 110) & (warped[:,:,2] < 50)
-    navigable_mask = (warped[:,:,0] > 160) & (warped[:,:,1] > 160) & (warped[:,:,2] > 160)
+    navigable_mask = (warped[:,:,0] > 150) & (warped[:,:,1] > 140) & (warped[:,:,2] > 160)
 
     rock_view = apply_mask(warped, yellow_mask)
     navigable_view = apply_mask(warped, navigable_mask)

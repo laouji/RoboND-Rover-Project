@@ -34,16 +34,29 @@ def handle_stuck_state(Rover):
     return advance(Rover, -1.0) # negative throttle puts Rover into reverse
 
 def handle_reverse_state(Rover):
-    Rover.action_timer.start() # start timing if timer not already running
+    Rover.action_timer.start() # we don't want to backup forever so start timing if timer not already running
 
-    if Rover.vel < -0.1 and Rover.action_timer.timeout():
+    # in case the Rover gets stuck going backwards
+    if Rover.throttle == Rover.throttle_set and Rover.vel == 0:
+        if Rover.action_timer.timeout():
+            Rover.mode = 'forward'
+            Rover.throttle = 0
+            return turn_around(Rover)
+
+    if Rover.vel < Rover.threshold_reverse_velocity:
+        # we want to know if we succeeded in backing up, but it might not be time to turn around yet
+        Rover.has_reached_threshold_reverse_velocity = True
+
+    if Rover.has_reached_threshold_reverse_velocity and Rover.action_timer.timeout():
         Rover.mode = 'forward'
         Rover.throttle = 0
+        Rover.has_reached_threshold_reverse_velocity = False # reset
         return turn_around(Rover)
 
     return advance(Rover, -1.0)
 
 def handle_moving_state(Rover):
+    # in case the Rover gets stuck going forwards
     if Rover.throttle == Rover.throttle_set and Rover.vel == 0:
         Rover.action_timer.start() # start timing if timer not already running
         if Rover.action_timer.timeout():
@@ -111,16 +124,18 @@ def advance(Rover, throttle):
     Rover.brake = 0
     Rover.mode = 'forward'
 
-    nav_angles = -15
-    # if we have any nav angles, find the weighted average
-    if len(Rover.nav_angles) > 0:
-        nav_angles = np.average(rad_to_deg(Rover.nav_angles), weights=Rover.nav_weights)
-
     # if we're going backwards try to go straight back
     if throttle < 0:
         Rover.mode = 'reverse'
-        nav_angles = np.mean(rad_to_deg(Rover.nav_angles))
+        Rover.steer = 0
+        return Rover
 
+    # if we don't have any angles, then try turning
+    if len(Rover.nav_angles) == 0:
+        return turn_around(Rover)
+    
+    # otherwise find the weighted average of the possible angles
+    nav_angles = np.average(rad_to_deg(Rover.nav_angles), weights=Rover.nav_weights)
     Rover.steer = np.clip(nav_angles, -15, 15) # clipped to the range +/- 15
     return Rover
 
