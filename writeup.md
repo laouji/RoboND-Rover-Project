@@ -35,6 +35,8 @@ Except for the text. I didn't really change any of the visuals output to the scr
 
 ![preview of process image() analysis][image1]
 
+Find the video using my test data in `./output/test_mapping_sample.mp4`
+
 ### Autonomous Navigation and Mapping
 
 #### 1. Fill in the `perception_step()` (at the bottom of the `perception.py` script) and `decision_step()` (in `decision.py`) functions in the autonomous mapping scripts and an explanation is provided in the writeup of how and why these functions were modified as they were.
